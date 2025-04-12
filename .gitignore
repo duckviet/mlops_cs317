@@ -9,3 +9,6 @@ models/*
 !data/processed/*.dvc
 !data/test/*.dvc
 !models/*.dvc
+
+# File tạm của pre-commit
+.pre-commit-config.yaml.bak
