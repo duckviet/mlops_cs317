@@ -1,0 +1,11 @@
+# Dữ liệu lớn (quản lý bằng DVC)
+data/raw/*
+data/processed/*
+data/test/*
+models/*
+
+# Loại trừ các file .dvc để Git theo dõi
+!data/raw/*.dvc
+!data/processed/*.dvc
+!data/test/*.dvc
+!models/*.dvc
