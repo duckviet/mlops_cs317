@@ -1,0 +1,6 @@
+outs:
+- md5: b2f183bac710ac79bd768a2f8052bf9e
+  size: 113063174
+  isexec: true
+  hash: md5
+  path: clicks_test.parquet

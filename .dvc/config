@@ -1,0 +1,4 @@
+[core]
+    remote = mlops_dvc_remote
+['remote "mlops_dvc_remote"']
+    url = ssh://mlops@192.168.28.39/home/mlops_cs317/dvcstore

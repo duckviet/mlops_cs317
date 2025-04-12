@@ -1,0 +1,6 @@
+outs:
+- md5: 4952bd404d4b42bf88cf2b128a8b2873
+  size: 33171732
+  isexec: true
+  hash: md5
+  path: test_sessions.pkl
