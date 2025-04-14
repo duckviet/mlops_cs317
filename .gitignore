@@ -12,3 +12,8 @@ models/*
 
 # File tạm của pre-commit
 .pre-commit-config.yaml.bak
+
+# Bỏ qua dữ liệu trong .rs_datasets
+data/.rs_datasets/yoochoose/*.dat
+
+

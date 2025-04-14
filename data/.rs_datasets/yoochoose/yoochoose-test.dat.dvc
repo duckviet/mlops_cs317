@@ -1,0 +1,6 @@
+outs:
+- md5: 169a22659180b520f584e4f1a9befc54
+  size: 371725851
+  isexec: true
+  hash: md5
+  path: yoochoose-test.dat

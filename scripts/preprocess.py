@@ -1,76 +1,81 @@
-# preprocess.py
-import os
-import time
 import cudf
 import cupy as cp
 import pickle
+import os
+from pathlib import Path
 
-def load_and_preprocess_data(file_path):
-    # Define data folder and file paths
-    train_file = os.path.join(file_path, "yoochoose/yoochoose-clicks.dat")
-    test_file = os.path.join(file_path, "yoochoose/yoochoose-test.dat")
+# Đảm bảo thư mục đầu ra tồn tại
+output_dir = "data/processed"
+Path(output_dir).mkdir(parents=True, exist_ok=True)
 
-    # Load data with cudf
-    start_time = time.time()
+# Đọc dữ liệu
+train_file = "data/raw/yoochoose-clicks.dat"
+test_file = "data/test/yoochoose-test.dat"
+
+# Kiểm tra tệp đầu vào tồn tại
+if not os.path.exists(train_file):
+    raise FileNotFoundError(f"Train file {train_file} does not exist.")
+if not os.path.exists(test_file):
+    raise FileNotFoundError(f"Test file {test_file} does not exist.")
+
+try:
     train_gdf = cudf.read_csv(
         train_file,
-        names=['session_id', 'time', 'item_id', 'category'],
-        dtype={'session_id': 'int32', 'item_id': 'int32', 'category': 'str'},
-        parse_dates=['time']
+        header=None,
+        names=["session_id", "timestamp", "item_id", "category"],
     )
-    end_time = time.time()
-    print(f"cuDF Load Time: {end_time - start_time:.4f} seconds")
-
-    start_time = time.time()
     test_gdf = cudf.read_csv(
-        test_file,
-        names=['session_id', 'time', 'item_id', 'category'],
-        dtype={'session_id': 'int32', 'item_id': 'int32', 'category': 'str'},
-        parse_dates=['time']
+        test_file, header=None, names=["session_id", "timestamp", "item_id", "category"]
     )
-    end_time = time.time()
-    print(f"cuDF Test Load Time: {end_time - start_time:.4f} seconds")
+except Exception as e:
+    raise RuntimeError(f"Error reading input files: {str(e)}")
 
-    # Sort by session_id and time
-    train_gdf = train_gdf.sort_values(['session_id', 'time'])
-    test_gdf = test_gdf.sort_values(['session_id', 'time'])
+# Sort by session_id and time
+train_gdf = train_gdf.sort_values(["session_id", "timestamp"])
+test_gdf = test_gdf.sort_values(["session_id", "timestamp"])
 
-    # Encode item_id using cudf and cupy
-    unique_items = train_gdf['item_id'].unique()
-    item_encoder = cudf.Series(cp.arange(1, len(unique_items) + 1), index=unique_items)
-    train_gdf['item_idx'] = train_gdf['item_id'].map(item_encoder)
-    test_gdf['item_idx'] = test_gdf['item_id'].map(item_encoder)
-    test_gdf = test_gdf.dropna(subset=['item_idx'])
-    test_gdf['item_idx'] = test_gdf['item_idx'].astype('int32')
+# Encode item_id
+unique_items = train_gdf["item_id"].unique()
+item_encoder = cudf.Series(cp.arange(1, len(unique_items) + 1), index=unique_items)
+train_gdf["item_idx"] = train_gdf["item_id"].map(item_encoder)
+test_gdf["item_idx"] = test_gdf["item_id"].map(item_encoder)
 
-    # Group by session_id to create sequences
-    sessions_gdf = train_gdf.groupby('session_id')['item_idx'].agg('collect')
-    sessions = sessions_gdf.to_arrow().to_pylist()
+# Xử lý dữ liệu test: loại bỏ các hàng không có item_idx và ép kiểu
+test_gdf = test_gdf.dropna(subset=["item_idx"])
+train_gdf["item_idx"] = train_gdf["item_idx"].astype("int32")
+test_gdf["item_idx"] = test_gdf["item_idx"].astype("int32")
 
-    test_sessions_gdf = test_gdf.groupby('session_id')['item_idx'].agg('collect')
-    test_sessions = test_sessions_gdf.to_arrow().to_pylist()
-
-    # Print statistics
-    print(f"Number of unique items: {len(unique_items)}")
-    print(f"Number of sessions: {len(sessions)}")
-    print(f"Number of test sessions: {len(test_sessions)}")
-
-    # Save processed data
-    save_dir = '/mnt/c/Users/HP/mlops_cs317/data/processed/'
-    os.makedirs(save_dir, exist_ok=True)
-
-    with open(save_dir + 'item_encoder.pkl', 'wb') as f:
+# Lưu item_encoder
+try:
+    with open(f"{output_dir}/item_encoder.pkl", "wb") as f:
         pickle.dump(item_encoder.to_pandas(), f)
+except Exception as e:
+    raise RuntimeError(f"Error saving item_encoder.pkl: {str(e)}")
 
-    train_gdf.to_parquet(save_dir + 'clicks_train.parquet', index=False)
-    test_gdf.to_parquet(save_dir + 'clicks_test.parquet', index=False)
+# Lưu train_gdf và test_gdf
+try:
+    train_gdf.to_parquet(f"{output_dir}/clicks_train.parquet")
+    test_gdf.to_parquet(f"{output_dir}/clicks_test.parquet")
+except Exception as e:
+    raise RuntimeError(f"Error saving Parquet files: {str(e)}")
 
-    with open(save_dir + 'train_sessions.pkl', 'wb') as f:
+# Group by session_id to create sequences
+sessions_gdf = train_gdf.groupby("session_id")["item_idx"].agg("collect")
+sessions = sessions_gdf.to_arrow().to_pylist()
+test_sessions_gdf = test_gdf.groupby("session_id")["item_idx"].agg("collect")
+test_sessions = test_sessions_gdf.to_arrow().to_pylist()
+
+# Lưu sessions và test_sessions
+try:
+    with open(f"{output_dir}/train_sessions.pkl", "wb") as f:
         pickle.dump(sessions, f)
-
-    with open(save_dir + 'test_sessions.pkl', 'wb') as f:
+    with open(f"{output_dir}/test_sessions.pkl", "wb") as f:
         pickle.dump(test_sessions, f)
+except Exception as e:
+    raise RuntimeError(f"Error saving session files: {str(e)}")
 
-    print("Saved all successfully.")
+# In thông tin
+print(f"Number of unique items: {len(unique_items)}")
+print(f"Number of sessions: {len(sessions)}")
+print(f"Number of test sessions: {len(test_sessions)}")
 
-    return sessions, test_sessions, len(unique_items)

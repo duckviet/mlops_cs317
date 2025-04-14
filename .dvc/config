@@ -1,0 +1,4 @@
+[core]
+    remote = storage
+['remote "storage"']
+    url = ssh://mlops@192.168.28.39/home/mlops/mlops_cs317/dvcstore

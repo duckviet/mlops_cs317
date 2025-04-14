@@ -1,0 +1,52 @@
+# Base image: RAPIDS with CUDA 11.8 & Python 3.10
+FROM rapidsai/rapidsai:cuda11.8-base-ubuntu22.04-py3.10
+
+# Set working directory
+WORKDIR /workspace
+
+# Install additional tools and clean up in a single RUN layer
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+# Environment variables for Conda
+ENV CONDA_DIR=/opt/conda
+ENV PATH=$CONDA_DIR/bin:$PATH
+
+# Copy environment config
+COPY environment.yml .
+
+# Update existing Conda environment or create a new one
+RUN conda config --set channel_priority strict && \
+    conda env update --name rapids-test --file environment.yml && \
+    conda clean --all -y
+
+# Install PyTorch and related packages via pip in the same RUN layer
+RUN /opt/conda/envs/rapids-test/bin/pip install --no-cache-dir \
+    torch==2.6.0+cu118 \
+    torchaudio==2.6.0+cu118 \
+    torchvision==0.21.0+cu118 \
+    --extra-index-url https://download.pytorch.org/whl/cu118
+
+# Activate environment and install DVC in the same RUN layer
+ENV CONDA_DEFAULT_ENV=rapids-test
+ENV PATH=$CONDA_DIR/envs/$CONDA_DEFAULT_ENV/bin:$PATH
+RUN echo "source activate ${CONDA_DEFAULT_ENV}" >> ~/.bashrc && \
+    /opt/conda/envs/rapids-test/bin/pip install dvc dvc[gs]
+
+# Set up non-root user
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+RUN groupadd -g ${GROUP_ID} mlops && \
+    useradd -m -u ${USER_ID} -g mlops -s /bin/bash mlops
+
+# Switch to non-root user
+USER mlops
+
+# Set working directory for user
+WORKDIR /workspace
+
+# Default command - activate Conda environment in the shell
+CMD ["/bin/bash", "-c", "source ~/.bashrc && bash"]
