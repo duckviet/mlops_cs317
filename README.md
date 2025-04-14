@@ -1,0 +1,419 @@
+# MLOps Project: YooChoose Recommendation System
+
+This project implements an end-to-end MLOps pipeline for a recommendation system using the YooChoose dataset. It leverages modern MLOps practices to manage data, train models, evaluate performance, and automate workflows.
+
+## Table of Contents
+[Overview](#overview)
+[Project Structure](#project-structure)
+[Prerequisites](#prerequisites)
+[Setup Instructions](#setup-instructions)
+
+  - [Local Machine Setup](#local-machine-setup)
+  - [Server Setup](#server-setup)
+  - [DVC Remote Storage](#dvc-remote-storage)
+  - [Airflow Automation](#airflow-automation)
+[Pipeline Details](#pipeline-details)
+[Usage](#usage)
+[Troubleshooting](#troubleshooting)
+[Contributing](#contributing)
+[License](#license)
+
+
+## Overview
+
+This project builds a recommendation system using the [YooChoose](https://darel13712.github.io/rs_datasets/Datasets/yoochoose/) dataset, which contains user click and purchase data. The pipeline includes data preprocessing, model training, evaluation, and deployment, with the following key components:
+
+- *Data Versioning*: Managed with DVC, with remote storage on a server.
+- *Workflow Automation*: Automated using Apache Airflow.
+- *Experiment Tracking*: Tracked using MLFlow.
+- *Code Quality*: Enforced with pre-commit hooks (black, flake8, and custom commit message validation).
+- *Environment*: Uses RAPIDS (cudf, cupy) for GPU-accelerated data processing and PyTorch for model training.
+
+The pipeline is designed to run either on a local machine (via SSH from the server) or directly on the server.
+
+## Project Structure
+
+/mlops_cs317/
+├── .git/                    # Git repository
+├── .dvc/                    # DVC configuration and cache
+├── .gitignore               # Git ignore file
+├── .pre-commit-config.yaml  # Pre-commit hooks configuration
+├── configs/
+│   ├── config.yaml          # General configuration (e.g., hyperparameters)
+│   └── dvc.yaml             # DVC pipeline definition
+├── data/
+│   ├── raw/                 # Raw data
+│   │   ├── yoochoose-clicks.dat
+│   │   ├── yoochoose-buys.dat
+│   │   └── dataset-README.txt
+│   ├── processed/           # Processed data
+│   │   ├── clicks_train.parquet
+│   │   ├── clicks_test.parquet
+│   │   ├── item_encoder.pkl
+│   │   ├── train_sessions.pkl
+│   │   └── test_sessions.pkl
+│   └── test/                # Test data
+│       └── yoochoose-test.dat
+├── scripts/
+│   ├── check_commit_message.sh  # Script to validate commit messages
+│   ├── preprocess.py        # Data preprocessing script
+│   ├── train.py             # Model training script
+│   ├── evaluate.py          # Model evaluation script
+│   ├── test_commit.py       # Test script for pre-commit hooks
+│   └── utils/               # Utility scripts
+│       ├── __init__.py
+│       ├── data_loader.py
+│       └── metrics.py
+├── models/
+│   └── model.pth            # Trained model
+├── metrics/
+│   ├── metrics.json         # Training metrics
+│   └── eval_metrics.json    # Evaluation metrics
+├── tests/                   # Unit tests
+├── notebooks/
+│   └── MLOps.ipynb          # Exploratory notebook
+└── requirements.txt         # Python dependencies
+
+### Server Structure (mlops@192.168.28.39:/home/mlops_CS317/)
+
+/home/mlops_CS317/
+├── dvcstore/                # DVC remote storage
+│   └── files/               # Data files
+│       ├── yoochoose-clicks.dat
+│       ├── yoochoose-test.dat
+│       ├── clicks_train.parquet
+│       ├── clicks_test.parquet
+│       └── ...
+├── project/                 # Optional: If running pipeline on the server
+│   └── [same as local structure]
+├── mlruns/                  # MLFlow experiment tracking
+├── airflow/                 # Airflow setup
+│   ├── dags/
+│   │   └── mlops_pipeline.py  # Airflow DAG
+│   ├── logs/
+│   ├── airflow.db
+│   └── airflow.cfg
+├── scripts/
+│   ├── start_mlflow.sh      # Script to start MLFlow server
+│   └── start_airflow.sh     # Script to start Airflow services
+├── .ssh/
+└── logs/
+
+## Prerequisites
+
+- *Local Machine*:
+  - Ubuntu on WSL (Windows Subsystem for Linux)
+  - Python 3.10
+  - Conda (for environment management)
+  - Git
+  - DVC
+  - SSH client
+
+- *Server*:
+  - Ubuntu
+  - Python 3.10
+  - Conda
+  - Apache Airflow 2.10.5
+  - MLFlow
+  - SSH server (for DVC remote storage)
+
+## Setup Instructions
+
+### Local Machine Setup
+
+1. *Clone the Repository*
+   
+   git clone <repository-url>
+   cd mlops_cs317
+   
+
+2. *Set Up the Conda Environment*
+   <!--  Create environment with GPU -->
+   <!-- Install conda through cmd: 
+        -Step1: curl -o miniconda.exe https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe
+        -Step2: start /wait "" miniconda.exe /InstallationType=JustMe /RegisterPython=0 /AddToPath=1 /S /D=%UserProfile%\Miniconda3
+        -Step3: conda --version (version: conda 25.*.*)(to check whether conda had installed or not) 
+    -->
+   conda create -n mlops_env python=3.10
+   conda activate mlops_env
+   pip install -r requirements.txt
+
+
+3. *Install DVC*
+   
+   pip install "dvc[ssh]"
+   
+
+4. *Set Up Pre-commit Hooks*
+   
+   pre-commit install
+   pre-commit install --hook-type commit-msg
+   
+
+5. *Initialize DVC*
+   
+   dvc init
+   
+
+### Server Setup
+
+1. *SSH into the Server*
+   
+   ssh mlops@192.168.28.39
+   
+
+2. *Install Conda (if not installed)*
+   
+   wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+   bash Miniconda3-latest-Linux-x86_64.sh
+   
+
+3. *Set Up the Conda Environment*
+   
+   conda create -n rapids-test python=3.10
+   conda activate rapids-test
+   pip install -r requirements.txt
+   
+
+4. *Install Airflow*
+   
+   pip install apache-airflow
+   airflow db init
+   airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com
+   
+
+5. *Start Airflow Services*
+   
+   nohup airflow webserver --port 8080 &
+   nohup airflow scheduler &
+   
+
+6. *Start MLFlow Server*
+   
+   nohup mlflow ui --backend-store-uri file:///home/mlops/mlruns --host 0.0.0.0 --port 5000 &
+   
+
+### DVC Remote Storage
+
+1. *Create the DVC Storage Directory on the Server*
+   
+   ssh mlops@192.168.28.39
+   mkdir -p /home/mlops/dvcstore
+   chmod 755 /home/mlops/dvcstore
+   exit
+   
+
+2. *Set Up SSH Key-based Authentication*
+   - On the local machine:
+     
+     ssh-keygen -t rsa -b 4096
+     ssh-copy-id mlops@192.168.28.39
+     
+
+3. *Configure the DVC Remote*
+   - On the local machine:
+     
+     dvc remote add -d myremote ssh://mlops@192.168.28.39/home/mlops/dvcstore
+     
+
+4. *Push Data to the Remote*
+   
+   dvc add data/raw/* data/test/* data/processed/*
+   git add data/raw/*.dvc data/test/*.dvc data/processed/*.dvc .dvc/config
+   git commit -m "setup: configure dvc remote and add data files"
+   dvc push
+   
+
+### Airflow Automation
+
+1. *Update the Airflow DAG*
+   - On the server, edit /home/mlops/airflow/dags/mlops_pipeline.py:
+     
+     from airflow import DAG
+     from airflow.operators.bash import BashOperator
+     from datetime import datetime, timedelta
+
+     default_args = {
+         "owner": "mlops",
+         "depends_on_past": False,
+         "start_date": datetime(2025, 4, 12),
+         "retries": 1,
+         "retry_delay": timedelta(minutes=5),
+     }
+
+     with DAG(
+         "mlops_pipeline",
+         default_args=default_args,
+         schedule_interval="@hourly",
+         catchup=False,
+     ) as dag:
+         preprocess = BashOperator(
+             task_id="preprocess",
+             bash_command="ssh nguyenvietduc-22520273@<your-local-ip> 'cd /mnt/c/Users/HP/mlops_cs317 && source /home/nguyenvietduc-22520273/miniconda3/envs/rapids-test/bin/activate && dvc pull && dvc repro preprocess'",
+         )
+
+         train = BashOperator(
+             task_id="train",
+             bash_command="ssh nguyenvietduc-22520273@<your-local-ip> 'cd /mnt/c/Users/HP/mlops_cs317 && source /home/nguyenvietduc-22520273/miniconda3/envs/rapids-test/bin/activate && dvc pull && dvc repro train'",
+         )
+
+         evaluate = BashOperator(
+             task_id="evaluate",
+             bash_command="ssh nguyenvietduc-22520273@<your-local-ip> 'cd /mnt/c/Users/HP/mlops_cs317 && source /home/nguyenvietduc-22520273/miniconda3/envs/rapids-test/bin/activate && dvc pull && dvc repro evaluate'",
+         )
+
+         preprocess >> train >> evaluate
+     
+   - Replace <your-local-ip> with your local machine’s IP.
+
+2. *Test the DAG*
+   
+   airflow dags test mlops_pipeline 2025-04-12T00:00:00
+   
+
+3. *Run the DAG*
+   - Access the Airflow UI at http://192.168.28.39:8080, log in (username: admin, password: admin), and trigger the DAG.
+
+## Pipeline Details
+
+The pipeline is defined in configs/dvc.yaml and consists of three stages:
+
+1. *Preprocess*:
+   - *Command*: python scripts/preprocess.py
+   - *Inputs*: data/raw/yoochoose-clicks.dat, data/test/yoochoose-test.dat
+   - *Outputs*: data/processed/clicks_train.parquet, data/processed/clicks_test.parquet, data/processed/item_encoder.pkl, data/processed/train_sessions.pkl, data/processed/test_sessions.pkl
+   - *Description*: Processes raw click data into parquet files and session sequences, using RAPIDS for GPU acceleration.
+
+2. *Train*:
+   - *Command*: python scripts/train.py
+   - *Inputs*: data/processed/train_sessions.pkl, data/processed/test_sessions.pkl
+   - *Outputs*: models/model.pth, metrics/metrics.json
+   - *Description*: Trains a recommendation model using PyTorch with negative sampling loss. Logs metrics to MLFlow (http://192.168.28.39:5000).
+
+3. *Evaluate*:
+   - *Command*: python scripts/evaluate.py
+   - *Inputs*: models/model.pth, data/processed/test_sessions.pkl
+   - *Outputs*: metrics/eval_metrics.json
+   - *Description*: Evaluates the trained model on test data and logs metrics.
+
+## Usage
+
+1. *Run the Pipeline Manually*
+   
+   dvc repro
+   
+
+2. *Monitor with Airflow*
+   - Access the Airflow UI at http://192.168.28.39:8080.
+   - Trigger the mlops_pipeline DAG to run the pipeline hourly.
+
+3. *View Experiment Metrics*
+   - Access the MLFlow UI at http://192.168.28.39:5000 to view training and evaluation metrics.
+
+## Troubleshooting
+
+- *DVC Push Fails*:
+  - Ensure dvc-ssh is installed: pip install "dvc[ssh]"
+  - Verify SSH key-based authentication: ssh mlops@192.168.28.39
+  - Check if files exist: ls data/raw/yoochoose-clicks.dat
+
+- *Airflow DAG Fails*:
+  - Check logs in /home/mlops/airflow/logs/.
+  - Ensure the local machine’s IP is correct in the DAG.
+  - Verify the Conda environment path in the DAG.
+
+- *Missing Data Files*:
+  - Run dvc pull to fetch data from the remote storage.
+  - Re-run the pipeline with dvc repro to regenerate missing files.
+
+## Contributing
+
+Fork the repository.
+
+2. Create a feature branch: git checkout -b feature/your-feature.
+3. Commit changes with the required format: git commit -m "feature(your-feature): add new functionality"
+   - Commit message format: <type>(<scope>): <description> (e.g., feature(preprocess): add new data transformation).
+   - Valid types: feature, fixbug, setup, release, fix, refactor, doc.
+   - No uppercase letters allowed.
+4. Push to the branch: git push origin feature/your-feature.
+Create a pull request.
+
+
+## License
+
+This project is licensed under the MIT License.
+
+---
+
+### Steps to Add the README to Your Project
+
+1. **Create the `README.md` File**
+   - On your local machine:
+     ```bash
+     nano README.md
+     
+   - Copy and paste the content above into the file, then save and exit.
+
+2. *Add and Commit the README*
+   - Add the file to Git:
+     
+     git add README.md
+     git commit -m "doc: add project readme"
+     
+
+3. *Push to Remote Repository (if applicable)*
+   - If you have a remote Git repository (e.g., on GitHub):
+     
+     git push -u origin main
+     
+
+---
+
+### 7. *Cấu trúc thư mục cập nhật*
+
+#### Trên máy local (/mnt/c/Users/HP/mlops_cs317/):
+
+/mnt/c/Users/HP/mlops_cs317/
+├── README.md                # Newly added
+├── .git/
+├── .dvc/
+├── .gitignore
+├── .pre-commit-config.yaml
+├── configs/
+│   ├── config.yaml
+│   └── dvc.yaml
+├── data/
+│   ├── raw/
+│   │   ├── yoochoose-clicks.dat
+│   │   ├── yoochoose-buys.dat
+│   │   └── dataset-README.txt
+│   ├── processed/
+│   │   ├── clicks_train.parquet
+│   │   ├── clicks_test.parquet
+│   │   ├── item_encoder.pkl
+│   │   ├── train_sessions.pkl
+│   │   └── test_sessions.pkl
+│   └── test/
+│       └── yoochoose-test.dat
+├── scripts/
+│   ├── check_commit_message.sh
+│   ├── preprocess.py
+│   ├── train.py
+│   ├── evaluate.py
+│   ├── test_commit.py
+│   └── utils/
+│       ├── __init__.py
+│       ├── data_loader.py
+│       └── metrics.py
+├── models/
+│   └── model.pth
+├── metrics/
+│   ├── metrics.json
+│   └── eval_metrics.json
+├── tests/
+├── notebooks/
+│   └── MLOps.ipynb
+└── requirements.txt
+
+#### In server (/home/mlops/):
+No changes needed unless you’re syncing the entire project to the server.
