@@ -1,0 +1,32 @@
+# PyTorch (CUDA 11.8 build)
+torch==2.6.0
+torchvision==0.21.0
+torchaudio==2.6.0
+# Chú ý: Các gói +cu118 yêu cầu cài qua pip từ PyTorch index 
+
+# RAPIDS AI
+cudf-cu12==25.2.2  # hoặc cudf==25.2.2 nếu dùng Conda
+cupy-cuda12x==13.4.1
+
+# Core data processing
+pandas==2.2.3
+numpy==2.0.2
+
+# Visualization
+matplotlib==3.10.1
+seaborn==0.13.2
+
+# Experiment tracking
+mlflow==2.21.3
+
+# Versioning
+dvc==3.59.1
+dvc[ssh]==3.59.1
+
+# Testing
+pytest
+
+# CICD
+pre-commit==4.2.0
+black==25.1.0
+flake8==7.2.0

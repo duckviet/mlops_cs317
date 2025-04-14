@@ -1,0 +1,46 @@
+schema: '2.0'
+stages:
+  preprocess:
+    cmd: python scripts/preprocess.py
+    deps:
+    - path: data/raw/yoochoose-clicks.dat
+      hash: md5
+      md5: 623769438592d778b45ba7631d2b1e1d
+      size: 1486798186
+      isexec: true
+    - path: data/test/yoochoose-test.dat
+      hash: md5
+      md5: 169a22659180b520f584e4f1a9befc54
+      size: 371725851
+      isexec: true
+    - path: scripts/preprocess.py
+      hash: md5
+      md5: 26f6a10f5cdcbf38c9157c7675410e17
+      size: 2885
+      isexec: true
+    outs:
+    - path: data/processed/clicks_test.parquet
+      hash: md5
+      md5: ef506a14f7693c60d3e464917633e0f9
+      size: 173120486
+      isexec: true
+    - path: data/processed/clicks_train.parquet
+      hash: md5
+      md5: 8df4c8aff33336b94e83f6b864521ed2
+      size: 690486207
+      isexec: true
+    - path: data/processed/item_encoder.pkl
+      hash: md5
+      md5: 738aaa79b4c8740c2151f28a214d6fce
+      size: 1266392
+      isexec: true
+    - path: data/processed/test_sessions.pkl
+      hash: md5
+      md5: 4952bd404d4b42bf88cf2b128a8b2873
+      size: 33171732
+      isexec: true
+    - path: data/processed/train_sessions.pkl
+      hash: md5
+      md5: 306a8b2ab9c1ed3f36b6973f79fd46e0
+      size: 132713402
+      isexec: true
