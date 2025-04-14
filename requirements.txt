@@ -1,7 +1,7 @@
 # PyTorch (CUDA 11.8 build)
-torch==2.6.0+cu118
-torchvision==0.21.0+cu118
-torchaudio==2.6.0+cu118
+torch==2.6.0
+torchvision==0.21.0
+torchaudio==2.6.0
 # Chú ý: Các gói +cu118 yêu cầu cài qua pip từ PyTorch index 
 
 # RAPIDS AI
