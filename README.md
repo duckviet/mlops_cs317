@@ -33,7 +33,7 @@ The pipeline is designed to run either on a local machine (via SSH from the serv
 
 ## Project Structure
 
-
+```text
 /mlops_cs317/
 ├── .git/                    # Git repository for version control
 ├── .dvc/                    # DVC configuration and cache for data version control
@@ -74,10 +74,10 @@ The pipeline is designed to run either on a local machine (via SSH from the serv
 ├── notebooks/
 │   └── MLOps.ipynb          # Jupyter notebook for exploratory analysis
 └── requirements.txt         # Python dependencies for the project
-
+```
 ### Server Structure (mlops@192.168.28.39:/home/mlops_CS317/)
 
-
+```text
 /home/mlops_CS317/
 ├── dvcstore/                # DVC remote storage for data files
 │   └── files/               # Versioned data files
@@ -100,7 +100,7 @@ The pipeline is designed to run either on a local machine (via SSH from the serv
 │   └── start_airflow.sh     # Script to launch Airflow services
 ├── .ssh/                    # SSH configuration for secure access
 └── logs/                    # General server logs
-
+```
 ## Prerequisites
 
 - *Local Machine*:
@@ -375,7 +375,7 @@ This project is licensed under the MIT License.
 
 #### Trên máy local (/mnt/c/Users/HP/mlops_cs317/):
 
-
+```text
 /mnt/c/Users/HP/mlops_cs317/
 ├── README.md                # Newly added
 ├── .git/
@@ -417,6 +417,6 @@ This project is licensed under the MIT License.
 ├── notebooks/
 │   └── MLOps.ipynb
 └── requirements.txt
-
+```
 #### In server (/home/mlops/):
 No changes needed unless you’re syncing the entire project to the server.
