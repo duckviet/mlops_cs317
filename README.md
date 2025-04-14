@@ -33,6 +33,7 @@ The pipeline is designed to run either on a local machine (via SSH from the serv
 
 ## Project Structure
 
+
 /mlops_cs317/
 ├── .git/                    # Git repository
 ├── .dvc/                    # DVC configuration and cache
@@ -75,6 +76,7 @@ The pipeline is designed to run either on a local machine (via SSH from the serv
 └── requirements.txt         # Python dependencies
 
 ### Server Structure (mlops@192.168.28.39:/home/mlops_CS317/)
+
 
 /home/mlops_CS317/
 ├── dvcstore/                # DVC remote storage
@@ -372,6 +374,7 @@ This project is licensed under the MIT License.
 ### 7. *Cấu trúc thư mục cập nhật*
 
 #### Trên máy local (/mnt/c/Users/HP/mlops_cs317/):
+
 
 /mnt/c/Users/HP/mlops_cs317/
 ├── README.md                # Newly added
