@@ -35,71 +35,71 @@ The pipeline is designed to run either on a local machine (via SSH from the serv
 
 
 /mlops_cs317/
-├── .git/                    # Git repository
-├── .dvc/                    # DVC configuration and cache
-├── .gitignore               # Git ignore file
-├── .pre-commit-config.yaml  # Pre-commit hooks configuration
+├── .git/                    # Git repository for version control
+├── .dvc/                    # DVC configuration and cache for data version control
+├── .gitignore               # Specifies files and directories to ignore in Git
+├── .pre-commit-config.yaml  # Configuration for pre-commit hooks
 ├── configs/
-│   ├── config.yaml          # General configuration (e.g., hyperparameters)
-│   └── dvc.yaml             # DVC pipeline definition
+│   ├── config.yaml          # General configuration (e.g., hyperparameters, paths)
+│   └── dvc.yaml             # DVC pipeline definitions
 ├── data/
-│   ├── raw/                 # Raw data
+│   ├── raw/                 # Raw, unprocessed data files
 │   │   ├── yoochoose-clicks.dat
 │   │   ├── yoochoose-buys.dat
 │   │   └── dataset-README.txt
-│   ├── processed/           # Processed data
+│   ├── processed/           # Processed data ready for training/evaluation
 │   │   ├── clicks_train.parquet
 │   │   ├── clicks_test.parquet
 │   │   ├── item_encoder.pkl
 │   │   ├── train_sessions.pkl
 │   │   └── test_sessions.pkl
-│   └── test/                # Test data
+│   └── test/                # Test data for model evaluation
 │       └── yoochoose-test.dat
 ├── scripts/
-│   ├── check_commit_message.sh  # Script to validate commit messages
-│   ├── preprocess.py        # Data preprocessing script
-│   ├── train.py             # Model training script
-│   ├── evaluate.py          # Model evaluation script
-│   ├── test_commit.py       # Test script for pre-commit hooks
-│   └── utils/               # Utility scripts
-│       ├── __init__.py
+│   ├── check_commit_message.sh  # Validates commit message format
+│   ├── preprocess.py        # Script for data preprocessing
+│   ├── train.py             # Script for model training
+│   ├── evaluate.py          # Script for model evaluation
+│   ├── test_commit.py       # Tests for pre-commit hooks
+│   └── utils/               # Utility scripts and helpers
+│       ├── _init_.py
 │       ├── data_loader.py
 │       └── metrics.py
 ├── models/
-│   └── model.pth            # Trained model
+│   └── model.pth            # Trained model checkpoint
 ├── metrics/
-│   ├── metrics.json         # Training metrics
-│   └── eval_metrics.json    # Evaluation metrics
-├── tests/                   # Unit tests
+│   ├── metrics.json         # Training performance metrics
+│   └── eval_metrics.json    # Evaluation performance metrics
+├── tests/                   # Unit tests for scripts and utilities
 ├── notebooks/
-│   └── MLOps.ipynb          # Exploratory notebook
-└── requirements.txt         # Python dependencies
+│   └── MLOps.ipynb          # Jupyter notebook for exploratory analysis
+└── requirements.txt         # Python dependencies for the project
 
 ### Server Structure (mlops@192.168.28.39:/home/mlops_CS317/)
 
 
 /home/mlops_CS317/
-├── dvcstore/                # DVC remote storage
-│   └── files/               # Data files
+├── dvcstore/                # DVC remote storage for data files
+│   └── files/               # Versioned data files
 │       ├── yoochoose-clicks.dat
 │       ├── yoochoose-test.dat
 │       ├── clicks_train.parquet
 │       ├── clicks_test.parquet
-│       └── ...
-├── project/                 # Optional: If running pipeline on the server
+│       └── ...              # Other DVC-managed files
+├── project/                 # Optional: Local project copy for server pipelines
 │   └── [same as local structure]
-├── mlruns/                  # MLFlow experiment tracking
-├── airflow/                 # Airflow setup
+├── mlruns/                  # MLflow experiment tracking directory
+├── airflow/                 # Airflow setup for pipeline orchestration
 │   ├── dags/
-│   │   └── mlops_pipeline.py  # Airflow DAG
-│   ├── logs/
-│   ├── airflow.db
-│   └── airflow.cfg
+│   │   └── mlops_pipeline.py  # Airflow DAG for MLOps pipeline
+│   ├── logs/                # Airflow logs
+│   ├── airflow.db           # Airflow metadata database
+│   └── airflow.cfg          # Airflow configuration file
 ├── scripts/
-│   ├── start_mlflow.sh      # Script to start MLFlow server
-│   └── start_airflow.sh     # Script to start Airflow services
-├── .ssh/
-└── logs/
+│   ├── start_mlflow.sh      # Script to launch MLflow server
+│   └── start_airflow.sh     # Script to launch Airflow services
+├── .ssh/                    # SSH configuration for secure access
+└── logs/                    # General server logs
 
 ## Prerequisites
 
