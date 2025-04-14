@@ -104,6 +104,7 @@ class SASRec(nn.Module):
         pos_encoding[:, 1::2] = torch.cos(pos * div_term)
         return pos_encoding.unsqueeze(0)  # Không chuyển lên cuda ngay
 
+
     def forward(self, x):
         batch_size, seq_len = x.size()
         x = self.embedding(x) + self.pos_encoding[:, :seq_len, :].to(x.device)
@@ -213,3 +214,4 @@ with mlflow.start_run(run_name="SASRec_NegativeSampling"):
             json.dump({"train_loss": avg_train_loss, "test_loss": avg_test_loss}, f)
     except Exception as e:
         raise RuntimeError(f"Error saving metrics.json: {str(e)}")
+
