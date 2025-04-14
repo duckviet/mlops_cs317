@@ -1,6 +1,0 @@
-outs:
-- md5: 71a4475ad45f27e4b8ca509455955f9d
-  size: 451423316
-  isexec: true
-  hash: md5
-  path: clicks_train.parquet
