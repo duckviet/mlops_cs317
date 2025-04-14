@@ -1,0 +1,6 @@
+outs:
+- md5: fd848c9e9bec7a70f2c8a0135ed57c77
+  size: 82478058
+  isexec: true
+  hash: md5
+  path: model.pth
