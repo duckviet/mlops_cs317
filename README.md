@@ -228,52 +228,12 @@ The pipeline is designed to run either on a local machine (via SSH from the serv
 
 ### Airflow Automation
 
-1. *Update the Airflow DAG*
-   - On the server, edit /home/mlops/airflow/dags/mlops_pipeline.py:
-     
-     from airflow import DAG
-     from airflow.operators.bash import BashOperator
-     from datetime import datetime, timedelta
-
-     default_args = {
-         "owner": "mlops",
-         "depends_on_past": False,
-         "start_date": datetime(2025, 4, 12),
-         "retries": 1,
-         "retry_delay": timedelta(minutes=5),
-     }
-
-     with DAG(
-         "mlops_pipeline",
-         default_args=default_args,
-         schedule_interval="@hourly",
-         catchup=False,
-     ) as dag:
-         preprocess = BashOperator(
-             task_id="preprocess",
-             bash_command="ssh nguyenvietduc-22520273@<your-local-ip> 'cd /mnt/c/Users/HP/mlops_cs317 && source /home/nguyenvietduc-22520273/miniconda3/envs/rapids-test/bin/activate && dvc pull && dvc repro preprocess'",
-         )
-
-         train = BashOperator(
-             task_id="train",
-             bash_command="ssh nguyenvietduc-22520273@<your-local-ip> 'cd /mnt/c/Users/HP/mlops_cs317 && source /home/nguyenvietduc-22520273/miniconda3/envs/rapids-test/bin/activate && dvc pull && dvc repro train'",
-         )
-
-         evaluate = BashOperator(
-             task_id="evaluate",
-             bash_command="ssh nguyenvietduc-22520273@<your-local-ip> 'cd /mnt/c/Users/HP/mlops_cs317 && source /home/nguyenvietduc-22520273/miniconda3/envs/rapids-test/bin/activate && dvc pull && dvc repro evaluate'",
-         )
-
-         preprocess >> train >> evaluate
-     
-   - Replace <your-local-ip> with your local machine’s IP.
-
-2. *Test the DAG*
+1. *Test the DAG*
    
    airflow dags test mlops_pipeline 2025-04-12T00:00:00
    
 
-3. *Run the DAG*
+2. *Watch the DAG*
    - Access the Airflow UI at http://192.168.28.39:8080, log in (username: admin, password: admin), and trigger the DAG.
 
 ## Pipeline Details
@@ -312,21 +272,6 @@ The pipeline is defined in configs/dvc.yaml and consists of three stages:
 3. *View Experiment Metrics*
    - Access the MLFlow UI at http://192.168.28.39:5000 to view training and evaluation metrics.
 
-## Troubleshooting
-
-- *DVC Push Fails*:
-  - Ensure dvc-ssh is installed: pip install "dvc[ssh]"
-  - Verify SSH key-based authentication: ssh mlops@192.168.28.39
-  - Check if files exist: ls data/raw/yoochoose-clicks.dat
-
-- *Airflow DAG Fails*:
-  - Check logs in /home/mlops/airflow/logs/.
-  - Ensure the local machine’s IP is correct in the DAG.
-  - Verify the Conda environment path in the DAG.
-
-- *Missing Data Files*:
-  - Run dvc pull to fetch data from the remote storage.
-  - Re-run the pipeline with dvc repro to regenerate missing files.
 
 ## Contributing
 
@@ -347,29 +292,6 @@ This project is licensed under the MIT License.
 
 ---
 
-### Steps to Add the README to Your Project
-
-1. **Create the `README.md` File**
-   - On your local machine:
-     ```bash
-     nano README.md
-     
-   - Copy and paste the content above into the file, then save and exit.
-
-2. *Add and Commit the README*
-   - Add the file to Git:
-     
-     git add README.md
-     git commit -m "doc: add project readme"
-     
-
-3. *Push to Remote Repository (if applicable)*
-   - If you have a remote Git repository (e.g., on GitHub):
-     
-     git push -u origin main
-     
-
----
 
 ### 7. *Cấu trúc thư mục cập nhật*
 
