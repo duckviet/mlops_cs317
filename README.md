@@ -1,3 +1,17 @@
+<!-- Banner -->
+<p align="center">
+  <a href="https://www.uit.edu.vn/" title="Trường Đại học Công nghệ Thông tin" style="border: none;">
+    <img src="https://i.imgur.com/WmMnSRt.png" alt="Trường Đại học Công nghệ Thông tin | University of Information Technology">
+  </a>
+</p>
+
+# Group members
+| STT    | MSSV          | Họ và Tên              |  Email                  |
+| ------ |:-------------:| ----------------------:|-------------------------:
+| 1      | 22520273      | Nguyễn Viết Đức        |22520273@gm.uit.edu.vn   |
+| 2      | 22520459      | Đoàn Văn Hoàng         |22520459@gm.uit.edu.vn   |
+| 3      | 22520862      | Huỳnh Nhật Minh        |22520862@gm.uit.edu.vn   |
+
 # MLOps Project: YooChoose Recommendation System
 
 This project implements an end-to-end MLOps pipeline for a recommendation system using the YooChoose dataset. It leverages modern MLOps practices to manage data, train models, evaluate performance, and automate workflows.
